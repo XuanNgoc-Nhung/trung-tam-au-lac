@@ -382,6 +382,13 @@
                                     <img src="{{ $qrCode }}" alt="QR Code">
                                 </div>
                             </div>
+
+                                <div class="qr-download">
+                                    <a href="{{ $qrCode }}" download="qr-code.png" class="btn btn-primary">
+                                        <i class="fas fa-download me-2"></i>
+                                        Tải xuống
+                                    </a>
+                                </div>
                         </div>
 
                         <!-- Thông tin người nhận -->

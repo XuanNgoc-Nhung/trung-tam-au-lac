@@ -34,8 +34,7 @@ class ThanhToanController extends Controller
 
     public function thanhToanThanhCong(Request $request)
     {
-        // Log thông tin request để debug
-        Log::info('Thanh toán thành công - Request data:');
+        // Log thông tin request để debugsql_thanhtoan_tr
         Log::info($request->all());
         $dataCreate = [
             'gateway' => $request->gateway,
@@ -53,6 +52,19 @@ class ThanhToanController extends Controller
         }else{
             $dataCreate['amount_in'] = $request->transferAmount;
             $dataCreate['amount_out'] = 0;
+            //lấy từ code ra cccd đó là 10 ký tự cuối của code
+            $noiDung  = $request->content;
+            //Tìm vị trí của chữ DH trong noiDung
+            $viTriDH = strpos($noiDung, 'DH');
+            $cccd = substr($noiDung, $viTriDH + 2,12);
+            // $cccd = substr($request->content, 2,12);
+            Log::info('Căn cước công dân được thanh toán:');
+            Log::info($cccd);
+            $hocVien = hocPhi::where('so_cccd', $cccd)->first();
+            if($hocVien){
+                $hocVien->trang_thai = 'Đã thanh toán';
+                $hocVien->save();
+            }
             GiaoDich::create($dataCreate);
         }
         //trả về với code 200
@@ -107,7 +119,6 @@ class ThanhToanController extends Controller
                              ->first();
 
         if ($giaoDich) {
-
             $hocVien = hocPhi::where('so_cccd', $cccd)->first();
             if($hocVien){
                 $hocVien->trang_thai = 'Đã thanh toán';

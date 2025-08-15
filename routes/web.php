@@ -6,6 +6,15 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ThanhToanController;
 
 Route::get('/', function () {
+
+$demo = 'qr-dh12312123';
+$text = "dh";
+$position = strpos($demo, $text);
+
+$cccd = substr($demo, $position + 2,12);
+return($cccd);
+
+
     return view('welcome');
 })->name('home');
 

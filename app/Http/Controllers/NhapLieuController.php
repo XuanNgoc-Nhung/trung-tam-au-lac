@@ -362,6 +362,10 @@ class NhapLieuController extends Controller
                   ->orWhere('ho_va_ten', 'like', "%$tuKhoa%");
             });
         }
+        if ($request->filled('sbd')) {
+            $sbd = $request->sbd;
+            $query->where('sbd', 'like', "%$sbd%");
+        }
         
         // Lọc theo trạng thái thanh toán
         if ($request->filled('trang_thai')) {

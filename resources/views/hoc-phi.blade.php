@@ -52,13 +52,19 @@
                         <div class="card-body">
 
                             <form class="row g-2 align-items-end mb-2" method="GET" action="">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                        <input type="text" class="form-control" name="tu_khoa" placeholder="Tìm theo CCCD, họ hoặc tên" value="{{ request('tu_khoa') }}">
+                                        <input type="text" class="form-control" name="sbd" placeholder="Số báo danh" value="{{ request('sbd') }}">
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                 <div class="col-md-2">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" name="tu_khoa" placeholder="CCCD, họ hoặc tên" value="{{ request('tu_khoa') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
                                     <select class="form-select" name="trang_thai" id="trangThaiFilter">
                                         <option value="">Tất cả trạng thái</option>
                                         <option value="da_thanh_toan" {{ request('trang_thai') == 'da_thanh_toan' ? 'selected' : '' }}>Đã thanh toán</option>
