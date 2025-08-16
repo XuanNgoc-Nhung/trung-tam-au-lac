@@ -6,15 +6,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ThanhToanController;
 
 Route::get('/', function () {
-
-$demo = 'qr-dh12312123';
-$text = "dh";
-$position = strpos($demo, $text);
-
-$cccd = substr($demo, $position + 2,12);
-return($cccd);
-
-
     return view('welcome');
 })->name('home');
 
@@ -40,7 +31,7 @@ Route::get('/hoan-thanh', [ThanhToanController::class, 'hoanThanh'])->name('hoan
 
 // Routes cho NhapLieuController (giữ nguyên)
 Route::get('/danh-sach-hoc-vien', [NhapLieuController::class, 'danhSachHocVien'])->name('danh-sach-hoc-vien');
-Route::get('/dang-ky', [NhapLieuController::class, 'dangKy'])->name('dang-ky');
+Route::get('/le-phi', [NhapLieuController::class, 'dangKy'])->name('dang-ky');
 Route::get('/tra-cuu', [NhapLieuController::class, 'traCuu'])->name('tra-cuu');
 Route::get('/nhap-lieu', [NhapLieuController::class, 'nhapLieu'])->name('nhap-lieu');
 Route::get('/hoc-phan', [NhapLieuController::class, 'hocPhan'])->name('hoc-phan.index');

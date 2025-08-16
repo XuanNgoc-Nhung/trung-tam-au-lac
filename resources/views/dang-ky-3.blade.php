@@ -11,7 +11,7 @@ if (isset($_GET['cccd']) && !isset($check)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Đăng Ký Khóa Học</title>
+    <title>Lệ phí sát hạch</title>
     <style>
         body {
             background: #f5f5f5;
@@ -231,10 +231,11 @@ if (isset($_GET['cccd']) && !isset($check)) {
             <div class="form-group">
                 <label for="cccd">Số Báo danh</label>
                 <div class="input-group">
+                    <input type="text" id="ngayThi" placeholder="Ngày thi" name="ngayThi" value="{{ isset($check) ? $check->ngay_thi : '' }}">
                     <input type="text" value="{{ isset($check) ? $check->sbd : '' }}" id="sbd" name="sbd"
-                        placeholder="Nhập số Báo Danh" required>
-                        <input type="hidden" id="cccdReal" name="cccdReal" value="{{ isset($check) ? $check->so_cccd  : '' }}">
-                    <button type="button" class="check-btn" onclick="checkCCCD()">Lấy thông tin</button>
+                        placeholder="SBD" required>
+                        <input type="hidden" id="cccdReal" name="cccdReal" value="{{ isset($check) ? $check->id  : '' }}">
+                    <button type="button" class="check-btn" onclick="checkCCCD()">Check</button>
                 </div>
             </div>
             <div class="form-group">
@@ -367,13 +368,18 @@ if (isset($_GET['cccd']) && !isset($check)) {
         function checkCCCD() {
             const cccdInput = document.getElementById('sbd');
             const cccdValue = cccdInput.value.trim();
-            
+            const ngayThi = document.getElementById('ngayThi').value.trim();
+           
+            if(!ngayThi){
+                alert('Vui lòng nhập ngày thi');
+                return;
+            } 
             if (!cccdValue) {
                 alert('Vui lòng nhập số báo danh');
                 return;
             }
             // Chuyển hướng đến URL mới với tham số cccd
-            window.location.href = '/dang-ky?sbd=' + encodeURIComponent(cccdValue);
+            window.location.href = '/le-phi?sbd=' + encodeURIComponent(cccdValue)+'&ngay_thi='+encodeURIComponent(ngayThi);
         }
 
         function handleSubmit(event) {
@@ -390,7 +396,7 @@ if (isset($_GET['cccd']) && !isset($check)) {
             }
             // Lấy tất cả dữ liệu từ form
             const formData = {
-                cccd: document.getElementById('cccdReal').value,
+                id: document.getElementById('cccdReal').value,
             };
 
             // Log dữ liệu ra console
@@ -450,7 +456,7 @@ if (isset($_GET['cccd']) && !isset($check)) {
                                 class: 'modal-btn-primary',
                                 onclick: () => {
                                     closeModal();
-                                    window.location.href = '/thanh-toan?cccd=' + encodeURIComponent(document.getElementById('cccdReal').value);
+                                    window.location.href = '/thanh-toan?lpt=' + encodeURIComponent(document.getElementById('cccdReal').value);
                                 }
                             },
                             {

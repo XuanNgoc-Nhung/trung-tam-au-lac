@@ -270,6 +270,7 @@ class UserController extends Controller
             }
 
             $data = $request->input('data');
+            $ngayThi = $request->input('ngay_thi');
             $successCount = 0;
             $errorCount = 0;
             $errors = [];
@@ -286,17 +287,30 @@ class UserController extends Controller
                         'dau_moi' => $row['dau_moi'],
                         'le_phi' => $row['hoc_phi'],
                         'trang_thai' => $row['trang_thai'] ?? 'Chưa thanh toán',
+                        'ngay_thi' => $ngayThi,
                     ];
+                    // Kiểm tra trùng CCCD và ngày thi
+                    $existingRecord = \App\Models\hocPhi::where('so_cccd', $hocPhiData['so_cccd'])
+                        ->where('ngay_thi', $hocPhiData['ngay_thi'])
+                        ->first();
+                    
+                    if ($existingRecord) {
+                        $errorCount++;
+                        $errors[] = "Dòng " . ($row['row_number'] ?? ($index + 1)) . ": CCCD " . $hocPhiData['so_cccd'] . " đã tồn tại với ngày thi " . $hocPhiData['ngay_thi'];
+                        continue;
+                    }
+
                     $validator = Validator::make($hocPhiData, [
                         'sbd' => 'nullable|string|max:50',
                         'ho_va_ten' => 'required|string|max:255',
-                        'so_cccd' => 'required|string|max:20|unique:hoc_phi,so_cccd',
+                        'so_cccd' => 'required|string|max:20',
                         'ngay_sinh' => 'required|date',
                         'dia_chi' => 'required|string',
                         'hang' => 'required|string|max:50',
                         'dau_moi' => 'required|string|max:255',
                         'le_phi' => 'required|numeric|min:0',
                         'trang_thai' => 'nullable|string|max:100',
+                        'ngay_thi' => 'required',
                     ]);
 
                     if ($validator->fails()) {
@@ -379,7 +393,7 @@ class UserController extends Controller
                         'ho' => 'required|string|max:255',
                         'ten' => 'required|string|max:255',
                         'ngay_sinh' => 'required|date',
-                        'cccd' => 'required|string|max:20|unique:hoc_vien,cccd',
+                        'cccd' => 'required|string|max:20',
                         'dia_chi' => 'required|string',
                         'khoa_hoc' => 'required|string|max:255',
                         'dau_moi' => 'required|string|max:255',

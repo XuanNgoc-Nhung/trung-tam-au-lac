@@ -168,7 +168,7 @@ class NhapLieuController extends Controller
         if (!$cauHinh) {
             return redirect()->route('home');
         }
-        $check = hocPhi::where('sbd', $request->sbd)->first();
+        $check = hocPhi::where('sbd', $request->sbd)->where('ngay_thi', $request->ngay_thi)->first();
         return view('dang-ky-3', compact('check'));
     }
     public function luuCauHinh(Request $request)

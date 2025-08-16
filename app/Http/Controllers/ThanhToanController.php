@@ -19,17 +19,17 @@ class ThanhToanController extends Controller
 
     public function thanhToan(Request $request)
     {
-        $cccd = $request->query('cccd');
-        $hocVien = hocPhi::where('so_cccd', $cccd)->first();
+        $lpt = $request->query('lpt');
+        $hocVien = hocPhi::where('id', $lpt)->first();
         if($hocVien){
             $soTien = $hocVien->le_phi;
         }else{
             $soTien = 5000;
         }
         $cauHinh = CauHinh::first();
-        $noiDung = "DH{$cccd}";
+        $noiDung = "LPT{$lpt}";
         $qrCode = "https://qr.sepay.vn/img?acc={$cauHinh->so_tai_khoan}&bank={$cauHinh->ngan_hang}&amount={$soTien}&des={$noiDung}&template=TEMPLATE&download=DOWNLOAD";
-        return view('thanh-toan', compact('cccd', 'cauHinh', 'soTien', 'qrCode'));
+        return view('thanh-toan', compact('lpt', 'cauHinh', 'soTien', 'qrCode'));
     }
 
     public function thanhToanThanhCong(Request $request)
@@ -78,8 +78,8 @@ class ThanhToanController extends Controller
     {
         Log::info('Check thanh toán - Request data:');
         Log::info($request->all());
-        $cccd = $request->cccd;
-        $hocVien = hocPhi::where('so_cccd', $cccd)->first();
+        $id = $request->id;
+        $hocVien = hocPhi::where('id', $id)->first();
         if($hocVien){
             if($hocVien->trang_thai == 'Đã thanh toán'){
             return response()->json([
@@ -105,8 +105,8 @@ class ThanhToanController extends Controller
 
     public function kiemTraTrangThaiThanhToan(Request $request)
     {
-        $cccd = $request->query('cccd');
-        if (!$cccd) {
+        $lpt = $request->query('id');
+        if (!$lpt) {
             return response()->json([
                 'success' => false,
                 'message' => 'Thiếu thông tin CCCD'
@@ -114,12 +114,12 @@ class ThanhToanController extends Controller
         }
 
         // Tìm giao dịch gần nhất cho CCCD này
-        $giaoDich = GiaoDich::where('transaction_content', 'like', 'DH'.$cccd.'%')
+        $giaoDich = GiaoDich::where('transaction_content', 'like', 'LPT'.$lpt.'%')
                              ->orderBy('created_at', 'desc')
                              ->first();
 
         if ($giaoDich) {
-            $hocVien = hocPhi::where('so_cccd', $cccd)->first();
+            $hocVien = hocPhi::where('id', $lpt)->first();
             if($hocVien){
                 $hocVien->trang_thai = 'Đã thanh toán';
                 $hocVien->save();

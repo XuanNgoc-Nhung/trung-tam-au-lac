@@ -324,98 +324,63 @@
             </h1>
             <p class="page-subtitle">Hoàn tất đơn hàng của bạn một cách an toàn và nhanh chóng</p>
         </div>
-
         <div class="row">
-            <!-- Thông tin đơn hàng - Bên trái -->
-            <div class="col-lg-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            Thông Tin Đơn Hàng
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Mã đơn hàng:</label>
-                                <p class="form-control-plaintext fw-bold">#DH{{ $cccd }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Ngày tạo:</label>
-                                <p class="form-control-plaintext fw-bold">{{ date('d/m/Y H:i') }}</p>
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <div class="price-item">
-                            <span class="fw-bold">Tạm tính:</span>
-                            <span>{{ number_format($soTien, 0, ',', '.') }} VNĐ</span>
-                        </div>
-                        <div class="price-item">
-                            <span class="fw-bold">Phí dịch vụ:</span>
-                            <span>0 VNĐ</span>
-                        </div>
-                        <div class="price-item">
-                            <span class="fw-bold fs-5">Tổng cộng:</span>
-                            <span class="fw-bold fs-5 text-primary">{{ number_format($soTien * 1, 0, ',', '.') }} VNĐ</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- QR Code và thông tin người nhận - Bên phải -->
-            <div class="col-lg-6 mb-4">
+            <div class="col-lg-12">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fas fa-qrcode me-2"></i>
-                            Thanh Toán QR Code
+                            Thông tin thanh toán
                         </h5>
                     </div>
                     <div class="card-body">
-                        <!-- QR Code -->
                         <div class="text-center mb-4">
                             <div class="qr-container">
                                 <div class="qr-placeholder">
-                                    <img src="{{ $qrCode }}" alt="QR Code">
+                                    <img style="width:100%; height:100%; min-width: 200px; min-height: 200px;" src="{{ $qrCode }}" alt="QR Code">
                                 </div>
                             </div>
 
                                 <div class="qr-download">
                                     <a href="{{ $qrCode }}" download="qr-code.png" class="btn btn-primary">
                                         <i class="fas fa-download me-2"></i>
-                                        Tải xuống
+                                        Tải QR Code
                                     </a>
                                 </div>
                         </div>
-
-                        <!-- Thông tin người nhận -->
                         <div class="mb-4">
-                            <h6 class="fw-bold mb-3">
+                            <h6 class="fw-bold">
                                 <i class="fas fa-user me-2"></i>
                                 Thông Tin Người Nhận
                             </h6>
                             <div class="info-box">
-                                <div class="info-item">
-                                    <span class="info-label">Tên:</span>
-                                    <span class="info-value">{{ $cauHinh->chu_tai_khoan }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Số tài khoản:</span>
-                                    <span class="info-value">{{ $cauHinh->so_tai_khoan }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Ngân hàng:</span>
-                                    <span class="info-value">{{ $cauHinh->ngan_hang }}</span>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td>Số tài khoản:</td>
+                                        <td>{{ $cauHinh->so_tai_khoan }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tên tài khoản:</td>
+                                        <td>{{ $cauHinh->chu_tai_khoan }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ngân hàng:</td>
+                                        <td>{{ $cauHinh->ngan_hang }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Số tiền:</td>
+                                        <td>{{ number_format($soTien, 0, ',', '.') }} VNĐ</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Nội dung chuyển khoản:</td>
+                                        <td>LPT{{ $lpt }}</td>
+                                    </tr>
+                                </table>
+                                <div class="text-center">
+                                    <p><span class="text-danger">Lưu ý: </span>Nội dung chuyển khoản phải đúng như nội dung trên QR Code</p>   
                                 </div>
                             </div>
                         </div>
-
-
-
-                        <!-- Nút thanh toán -->
                         <div class="d-grid gap-2">
                             <button type="button" class="btn btn-outline-secondary" id="btnHuy">
                                 <i class="fas fa-times me-2"></i>
@@ -428,7 +393,6 @@
         </div>
     </div>
 
-    <!-- Modal xác nhận thanh toán -->
     <div class="modal fade" id="confirmModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -471,7 +435,7 @@
             function checkPaymentStatus() {
                 axios.get('/kiem-tra-trang-thai-thanh-toan', {
                     params: {
-                        cccd: '{{ $cccd }}'
+                        id: '{{ $lpt }}'
                     }
                 })
                 .then(function (response) {

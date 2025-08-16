@@ -50,12 +50,17 @@
                             <h6 class="mb-0"><i class="fas fa-filter"></i> Bộ lọc tìm kiếm</h6>
                         </div>
                         <div class="card-body">
-
                             <form class="row g-2 align-items-end mb-2" method="GET" action="">
                                 <div class="col-md-2">
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                                         <input type="text" class="form-control" name="sbd" placeholder="Số báo danh" value="{{ request('sbd') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" name="ngay_thi" placeholder="Ngày thi" value="{{ request('ngay_thi') }}">
                                     </div>
                                 </div>
                                  <div class="col-md-2">
@@ -71,18 +76,14 @@
                                         <option value="chua_thanh_toan" {{ request('trang_thai') == 'chua_thanh_toan' ? 'selected' : '' }}>Chưa thanh toán</option>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-primary w-100" type="submit" title="Tìm kiếm">
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary" type="submit" title="Tìm kiếm">
                                         <i class="fas fa-search"></i> Tìm kiếm
                                     </button>
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-success w-100" id="exportExcelBtn" title="Xuất Excel" onclick="exportExcel()">
+                                    <button type="button" class="btn btn-success" id="exportExcelBtn" title="Xuất Excel" onclick="exportExcel()">
                                         <i class="fas fa-file-excel"></i> Xuất Excel
                                     </button>
-                                </div>
-                                <div class="col-md-2">
-                                    <a href="{{ url()->current() }}" class="btn btn-danger w-100" title="Xóa bộ lọc">
+                                    <a href="{{ url()->current() }}" class="btn btn-danger" title="Xóa bộ lọc">
                                         <i class="fas fa-times"></i> Xóa bộ lọc
                                     </a>
                                 </div>
@@ -102,6 +103,7 @@
                         <tr>
                             <th>STT</th>
                             <th>Số báo danh</th>
+                            <th>Ngày thi</th>
                             <th>Họ và tên</th>
                             <th>CMND</th>
                             <th>Ngày sinh</th>
@@ -122,6 +124,7 @@
                                     {{ $hocVien->sbd ?? 'Chưa có' }}
                                 </span>
                             </td>
+                            <td>{{ $hocVien->ngay_thi }}</td>
                             <td>{{ $hocVien->ho_va_ten }}</td>
                             <td>{{ $hocVien->so_cccd ?? 'Không có'}}</td>
                             <td>{{ \Carbon\Carbon::parse($hocVien->ngay_sinh)->format('d/m/Y') }}</td>
@@ -369,7 +372,8 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6 class="mb-0">Xem trước dữ liệu</h6>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex w-25 text-right">
+                                <input type="text" class="form-control-sm" placeholder="dd/mm/yyyy" id="ngayThiImport" name="ngay_thi" required>
                                 <button type="button" class="btn btn-success btn-sm" id="confirmImportBtn">
                                     <i class="fas fa-check me-2"></i>Xác nhận Import
                                 </button>
@@ -675,6 +679,12 @@
                 'Không có dữ liệu để import. Vui lòng chọn file có dữ liệu hợp lệ.');
             return;
         }
+        const ngayThi = document.getElementById('ngayThiImport').value;
+        // Gửi dữ liệu JSON để import
+        if(!ngayThi){
+            showErrorModal('Lỗi nhập liệu!', 'Vui lòng chọn ngày thi trước khi import.');
+            return;
+        }
 
         if (!confirm(`Bạn có chắc chắn muốn import ${previewData.length} dòng dữ liệu vào hệ thống?`)) {
             return;
@@ -699,8 +709,6 @@
             </div>
         </div>
     `;
-
-        // Gửi dữ liệu JSON để import
         fetch('/hoc-vien/import-json', {
                 method: 'POST',
                 headers: {
@@ -708,8 +716,10 @@
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
                         'content')
                 },
+                
                 body: JSON.stringify({
-                    data: previewData
+                    data: previewData,
+                    ngay_thi: ngayThi?ngayThi:null
                 })
             })
             .then(response => response.json())
