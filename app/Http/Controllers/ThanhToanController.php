@@ -54,13 +54,13 @@ class ThanhToanController extends Controller
             $dataCreate['amount_out'] = 0;
             //lấy từ code ra cccd đó là 10 ký tự cuối của code
             $noiDung  = $request->content;
-            //Tìm vị trí của chữ DH trong noiDung
-            $viTriDH = strpos($noiDung, 'DH');
-            $cccd = substr($noiDung, $viTriDH + 2,12);
-            // $cccd = substr($request->content, 2,12);
-            Log::info('Căn cước công dân được thanh toán:');
-            Log::info($cccd);
-            $hocVien = hocPhi::where('so_cccd', $cccd)->first();
+            $result = '';
+            if (preg_match('/LPT(\S*)/', $noiDung, $matches)) {
+                $result = $matches[1];
+            }
+            Log::info('Id học viên được thanh toán:');
+            Log::info($result);
+            $hocVien = hocPhi::where('id', $result)->first();
             if($hocVien){
                 $hocVien->trang_thai = 'Đã thanh toán';
                 $hocVien->save();

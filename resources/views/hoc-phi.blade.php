@@ -63,7 +63,13 @@
                                         <input type="text" class="form-control" name="ngay_thi" placeholder="Ngày thi" value="{{ request('ngay_thi') }}">
                                     </div>
                                 </div>
-                                 <div class="col-md-2">
+                                 <div class="col-md-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" name="ma_thanh_toan" placeholder="Mã thanh toán" value="{{ request('ma_thanh_toan') }}">
+                                    </div>
+                                </div>
+                                 <div class="col-md-3">
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                                         <input type="text" class="form-control" name="tu_khoa" placeholder="CCCD, họ hoặc tên" value="{{ request('tu_khoa') }}">
@@ -76,7 +82,7 @@
                                         <option value="chua_thanh_toan" {{ request('trang_thai') == 'chua_thanh_toan' ? 'selected' : '' }}>Chưa thanh toán</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-12 text-center mt-4">
                                     <button class="btn btn-primary" type="submit" title="Tìm kiếm">
                                         <i class="fas fa-search"></i> Tìm kiếm
                                     </button>
@@ -107,10 +113,11 @@
                             <th>Họ và tên</th>
                             <th>CMND</th>
                             <th>Ngày sinh</th>
-                            <th>Địa chỉ</th>
+                            {{-- <th>Địa chỉ</th> --}}
                             <th>Hạng</th>
                             <th>Đầu mối</th>
                             <th>Lệ phí</th>
+                            <th>Mã thanh toán</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
@@ -128,7 +135,7 @@
                             <td>{{ $hocVien->ho_va_ten }}</td>
                             <td>{{ $hocVien->so_cccd ?? 'Không có'}}</td>
                             <td>{{ \Carbon\Carbon::parse($hocVien->ngay_sinh)->format('d/m/Y') }}</td>
-                            <td>{{ $hocVien->dia_chi }}</td>
+                            {{-- <td>{{ $hocVien->dia_chi }}</td> --}}
                             <td>
                                 <span class="badge bg-info">
                                     {{ $hocVien->hang ?? 'Chưa xác định' }}
@@ -140,6 +147,7 @@
                                     {{ number_format($hocVien->le_phi ?? 0, 0, ',', '.') }} VNĐ
                                 </span>
                             </td>
+                            <td class="text-center">LPT{{ $hocVien->id ?? 'Chưa có'}}</td>
                             <td>
                                 @php
                                     $trangThai = $hocVien->trang_thai ?? 'Chưa thanh toán';

@@ -168,6 +168,7 @@ class NhapLieuController extends Controller
         if (!$cauHinh) {
             return redirect()->route('home');
         }
+        
         $check = hocPhi::where('sbd', $request->sbd)->where('ngay_thi', $request->ngay_thi)->first();
         return view('dang-ky-3', compact(['check', 'cauHinh']));
     }
@@ -366,7 +367,11 @@ class NhapLieuController extends Controller
             $sbd = $request->sbd;
             $query->where('sbd', 'like', "%$sbd%");
         }
-        
+        if ($request->filled('ma_thanh_toan')) {
+            $maThanhToan = $request->ma_thanh_toan;
+            $maThanhToan = substr($maThanhToan, 3);
+            $query->where('id', $maThanhToan);
+        }
         // Lọc theo trạng thái thanh toán
         if ($request->filled('trang_thai')) {
             $trangThai = $request->trang_thai;
