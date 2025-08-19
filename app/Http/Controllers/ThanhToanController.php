@@ -34,7 +34,7 @@ class ThanhToanController extends Controller
 
     public function thanhToanThanhCong(Request $request)
     {
-        // Log thông tin request để debugsql_thanhtoan_tr
+        Log::info('Request thanh toán:');
         Log::info($request->all());
         $dataCreate = [
             'gateway' => $request->gateway,

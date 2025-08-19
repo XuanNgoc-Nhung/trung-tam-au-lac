@@ -169,7 +169,7 @@ class NhapLieuController extends Controller
             return redirect()->route('home');
         }
         $check = hocPhi::where('sbd', $request->sbd)->where('ngay_thi', $request->ngay_thi)->first();
-        return view('dang-ky-3', compact('check'));
+        return view('dang-ky-3', compact(['check', 'cauHinh']));
     }
     public function luuCauHinh(Request $request)
     {
