@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\SatHach;
 use App\Models\DauMoi;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\HocVienTemplateExport;
 
 class UserController extends Controller
 {
@@ -438,30 +439,7 @@ class UserController extends Controller
     // Tải mẫu Excel
     public function downloadTemplate()
     {
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="mau_import_hoc_vien.csv"',
-        ];
-
-        $callback = function() {
-            $file = fopen('php://output', 'w');
-            
-            // Tiêu đề
-            fputcsv($file, [
-                'Họ', 'Tên', 'Ngày sinh', 'CCCD', 'Địa chỉ', 'Hạng', 
-                'Đầu mối', 'Lý thuyết', 'Mô phỏng', 'Thực hành', 'Đường trường', 'Lệ phí'
-            ]);
-            
-            // Dữ liệu mẫu
-            fputcsv($file, [
-                'Nguyễn', 'Văn A', '01/01/1990', '123456789012', 'Hà Nội', 'B2',
-                'Trung tâm A', '85', '90', '88', '92', '5000000'
-            ]);
-            
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download(new HocVienTemplateExport, 'mau_import_hoc_vien.xlsx');
     }
 
     // Parse date từ Excel

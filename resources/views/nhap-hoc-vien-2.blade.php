@@ -97,11 +97,11 @@
                             <th>Nội dung thi</th>
                             <th>Ngày sát hạch</th>
                             <th>Đầu mối</th>
+                            <th>Ghi chú</th>
                             <th>Lý thuyết</th>
                             <th>Mô phỏng</th>
                             <th>Thực hành</th>
                             <th>Đường trường</th>
-                            <th>Học phí</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
@@ -111,13 +111,18 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $hocVien->ho }}</td>
                             <td>{{ $hocVien->ten }}</td>
-                            <td>{{ \Carbon\Carbon::parse($hocVien->ngay_sinh)->format('d/m/Y') }}</td>
+                            <td>{{ $hocVien->ngay_sinh }}</td>
                             <td>{{ $hocVien->cccd ?? 'Không có'}}</td>
                             <td>{{ $hocVien->dia_chi }}</td>
                             <td>{{ $hocVien->khoa_hoc }}</td>
                             <td>{{ $hocVien->noi_dung_thi }}</td>
-                            <td>{{ \Carbon\Carbon::parse($hocVien->ngay_sat_hach)->format('d/m/Y') }}</td>
+                            <td>{{ $hocVien->ngay_sat_hach }}</td>
                             <td>{{ $hocVien->dau_moi }}</td>
+                            <td>
+                                <span class="text-muted">
+                                    {{ $hocVien->ghi_chu ?? ' ' }}
+                                </span>
+                            </td>
                             <td>
                                 <span class="badge {{ $hocVien->ly_thuyet >= 50 ? 'bg-success' : 'bg-danger' }}">
                                     {{ $hocVien->ly_thuyet }}
@@ -136,11 +141,6 @@
                             <td>
                                 <span class="badge {{ $hocVien->duong_truong >= 50 ? 'bg-success' : 'bg-danger' }}">
                                     {{ $hocVien->duong_truong }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="text-success fw-bold">
-                                    {{ number_format($hocVien->hoc_phi ?? 0, 0, ',', '.') }} VNĐ
                                 </span>
                             </td>
                             <td>
@@ -249,6 +249,11 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="edit_ghi_chu" class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="edit_ghi_chu" name="ghi_chu" rows="2"></textarea>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-3">
                             <div class="mb-3">
@@ -273,13 +278,6 @@
                                 <label for="edit_duong_truong" class="form-label">Đường trường</label>
                                 <input type="text" class="form-control" id="edit_duong_truong" name="duong_truong"
                                     required>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="edit_hoc_phi" class="form-label">Học phí (VNĐ)</label>
-                                <input type="number" class="form-control" id="edit_hoc_phi" name="hoc_phi"
-                                    min="0" step="1000" required>
                             </div>
                         </div>
                     </div>
@@ -320,7 +318,7 @@
                                             .csv)</label>
                                         <input type="file" class="form-control" id="excelFile" name="excel_file"
                                             accept=".xlsx,.xls,.csv" required>
-                                        <div class="form-text">Hỗ trợ định dạng .xlsx, .xls và .csv</div>
+                                        <div class="form-text">Hỗ trợ định dạng .xlsx, .xls và .csv. Khuyến nghị sử dụng file mẫu XLSX</div>
                                     </div>
 
                                     <div class="mb-3">
@@ -329,20 +327,21 @@
                                             <p class="mb-1"><strong>Dữ liệu sẽ được đọc từ hàng thứ 2 (bỏ qua hàng tiêu
                                                     đề) với các cột:</strong></p>
                                             <ul class="mb-0">
-                                                                                            <li>Họ, Tên, Ngày sinh, CCCD, Địa chỉ</li>
-                                            <li>Khóa học, Nội dung thi, Ngày sát hạch, Đầu mối</li>
-                                            <li>Lý thuyết, Mô phỏng, Thực hành, Đường trường, Học phí</li>
+                                                <li>Họ, Tên, Ngày sinh, CCCD, Địa chỉ</li>
+                                                <li>Khóa học, Nội dung thi, Ngày sát hạch (có thể nhập tự do), Đầu mối</li>
+                                                <li>Ghi chú, Lý thuyết, Mô phỏng, Thực hành, Đường trường</li>
                                             </ul>
+                                            <p class="mb-0 mt-2"><small class="text-muted">Lưu ý: Ngày sát hạch có thể nhập dưới dạng text tự do (ví dụ: "Tháng 1/2023", "Q1/2023", "T1/2023", v.v.)</small></p>
                                         </div>
                                     </div>
 
                                     <div class="d-flex gap-2">
                                         <button type="submit" class="btn btn-primary" id="previewBtn">
-                                            <i class="fas fa-eye me-2"></i>Xem trước dữ liệu
+                                            <i class="fas fa-upload me-2"></i>Import dữ liệu
                                         </button>
-                                        <button type="button" class="btn btn-secondary" onclick="downloadTemplate()">
-                                            <i class="fas fa-download me-2"></i>Tải mẫu CSV
-                                        </button>
+                                        <a href="{{ route('hoc-vien.download-template') }}" class="btn btn-secondary">
+                                            <i class="fas fa-download me-2"></i>Tải mẫu XLSX
+                                        </a>
                                     </div>
                                 </form>
                             </div>
@@ -393,11 +392,11 @@
                                             <th>Nội dung thi</th>
                                             <th>Ngày sát hạch</th>
                                             <th>Đầu mối</th>
+                                            <th>Ghi chú</th>
                                             <th>Lý thuyết</th>
                                             <th>Mô phỏng</th>
                                             <th>Thực hành</th>
                                             <th>Đường trường</th>
-                                            <th>Học phí</th>
                                         </tr>
                                     </thead>
                                     <tbody id="previewTableBody">
@@ -473,8 +472,62 @@
     // Biến lưu trữ dữ liệu xem trước
     let previewData = [];
 
-    // Xử lý form xem trước Excel
+    // Xử lý form import Excel
     document.getElementById('importForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('excelFile');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showErrorModal('Lỗi chọn file!', 'Vui lòng chọn file Excel hoặc CSV để import.');
+            return;
+        }
+
+        // Tạo FormData để gửi file
+        const formData = new FormData();
+        formData.append('excel_file', file);
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+        // Hiển thị loading
+        const previewBtn = document.getElementById('previewBtn');
+        const originalText = previewBtn.innerHTML;
+        previewBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+        previewBtn.disabled = true;
+
+        // Gửi request import
+        fetch('{{ route("hoc-vien.import") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.rc === 0) {
+                showSuccessModal('Import thành công!', data.message);
+                // Reload trang để hiển thị dữ liệu mới
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showErrorModal('Import thất bại!', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorModal('Lỗi hệ thống!', 'Có lỗi xảy ra khi import dữ liệu.');
+        })
+        .finally(() => {
+            // Khôi phục nút
+            previewBtn.innerHTML = originalText;
+            previewBtn.disabled = false;
+        });
+    });
+
+    // Xử lý form xem trước Excel (giữ lại cho tương lai nếu cần)
+    document.getElementById('previewForm')?.addEventListener('submit', function (e) {
         e.preventDefault();
 
         const fileInput = document.getElementById('excelFile');
@@ -566,11 +619,13 @@
                             'noi_dung_thi': String(row[6] || ''),
                             'ngay_sat_hach': String(row[7] || ''),
                             'dau_moi': String(row[8] || ''),
-                            'ly_thuyet': String(row[9] || '0'),
-                            'mo_phong': String(row[10] || '0'),
-                            'thuc_hanh': String(row[11] || '0'),
-                            'duong_truong': String(row[12] || '0'),
-                            'hoc_phi': String(row[13] || '0')
+                            'ghi_chu': String(row[9] || ''),
+                            'ly_thuyet': String(row[10] || '0'),
+                            'mo_phong': String(row[11] || '0'),
+                            'thuc_hanh': String(row[12] || '0'),
+                            'duong_truong': String(row[13] || '0'),
+                            'hoc_phi': String(row[14] || '0'),
+                            'da_thanh_toan': String(row[15] || 'Không')
                         });
                     }
                 });
@@ -644,6 +699,11 @@
             <td>${row.ngay_sat_hach || ''}</td>
             <td>${row.dau_moi || ''}</td>
             <td>
+                <span class="text-muted">
+                    ${row.ghi_chu || ' '}
+                </span>
+            </td>
+            <td>
                 <span class="badge ${parseInt(row.ly_thuyet) >= 50 ? 'bg-success' : 'bg-danger'}">
                     ${row.ly_thuyet || 0}
                 </span>
@@ -665,7 +725,12 @@
             </td>
             <td>
                 <span class="text-success fw-bold">
-                    ${parseInt(row.hoc_phi || 0).toLocaleString('vi-VN')} VNĐ
+                    ${parseInt(row.hoc_phi).toLocaleString('vi-VN')} VNĐ
+                </span>
+            </td>
+            <td>
+                <span class="badge ${row.da_thanh_toan === 'Có' ? 'bg-success' : 'bg-warning'}">
+                    ${row.da_thanh_toan || 'Không'}
                 </span>
             </td>
         `;
@@ -884,7 +949,7 @@
                 document.getElementById('edit_mo_phong').value = data.mo_phong || 0;
                 document.getElementById('edit_thuc_hanh').value = data.thuc_hanh || 0;
                 document.getElementById('edit_duong_truong').value = data.duong_truong || 0;
-                document.getElementById('edit_hoc_phi').value = data.hoc_phi || 0;
+                document.getElementById('edit_ghi_chu').value = data.ghi_chu || '';
 
                 document.getElementById('editForm').action = `/hoc-vien/${id}`;
 
@@ -910,7 +975,7 @@
         const requiredFields = ['edit_ho', 'edit_ten', 'edit_ngay_sinh', 'edit_dia_chi',
             'edit_khoa_hoc', 'edit_noi_dung_thi', 'edit_ngay_sat_hach',
             'edit_dau_moi', 'edit_ly_thuyet', 'edit_mo_phong',
-            'edit_thuc_hanh', 'edit_duong_truong', 'edit_hoc_phi'
+            'edit_thuc_hanh', 'edit_duong_truong'
         ];
 
         let isValid = true;
@@ -991,24 +1056,15 @@
         }
     }
 
-    // Tải mẫu file CSV
+    // Tải mẫu file XLSX
     function downloadTemplate() {
-        const template = `
-Họ,Tên,Ngày sinh,CCCD,Địa chỉ,Khóa học,Nội dung thi,Ngày sát hạch,Đầu mối,Lý thuyết,Mô phỏng,Thực hành,Đường trường,Học phí
-Nguyễn,Văn A,01/01/2000,1234567890123,123 Đường ABC,Khóa 1,Bài thi 1,01/01/2023,Đầu mối 1,50,50,50,50,5000000
-Trần,Thị B,02/02/2001,9876543210987,456 Đường XYZ,Khóa 2,Bài thi 2,02/02/2023,Đầu mối 2,60,60,60,60,6000000
-`;
-        const blob = new Blob([template], {
-            type: 'text/csv'
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'hoc_vien_template.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Tạo link tải file từ server
+        const link = document.createElement('a');
+        link.href = '/hoc-vien/download-template';
+        link.download = 'mau_import_hoc_vien.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function exportExcel() {
@@ -1088,6 +1144,32 @@ Trần,Thị B,02/02/2001,9876543210987,456 Đường XYZ,Khóa 2,Bài thi 2,02/
     }
     
     // Hiển thị modal thông báo lỗi
+    function showSuccessModal(title, message) {
+        const errorContent = document.getElementById('errorContent');
+        errorContent.innerHTML = `
+        <div class="alert alert-success">
+            <h6><i class="fas fa-check-circle me-2"></i>${title}</h6>
+            <div class="mt-3">
+                ${message}
+            </div>
+        </div>
+    `;
+
+        // Hiển thị modal thành công đè lên modal import
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'), {
+            backdrop: 'static',
+            keyboard: false
+        });
+        errorModal.show();
+
+        // Tự động đóng modal thành công sau 5 giây
+        setTimeout(() => {
+            if (errorModal._element.classList.contains('show')) {
+                errorModal.hide();
+            }
+        }, 5000);
+    }
+
     function showErrorModal(title, message) {
         const errorContent = document.getElementById('errorContent');
         errorContent.innerHTML = `

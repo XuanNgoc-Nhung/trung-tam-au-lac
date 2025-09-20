@@ -127,6 +127,12 @@ if (isset($_GET['cccd']) && !isset($check)) {
             background: #616161;
         }
 
+        /* Plain select styling */
+        .form-group select:focus {
+            border-color: #2196f3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
     </style>
 </head>
 
@@ -135,12 +141,35 @@ if (isset($_GET['cccd']) && !isset($check)) {
         <h2>Đăng Ký Khóa Học</h2>
         <form id="registrationForm" onsubmit="handleSubmit(event)">
             <div class="form-group">
+                <label for="dau_moi">Chọn Đầu Mối:</label>
+                <select id="dau_moi" name="dau_moi" onchange="filterHocVien()">
+                    <option value="">-- Chọn đầu mối --</option>
+                    @foreach($danh_sach_dau_moi as $dau_moi)
+                        <option value="{{ $dau_moi->ma_dau_moi }}" 
+                                {{ request('dau_moi') == $dau_moi->ma_dau_moi ? 'selected' : '' }}>
+                            {{ $dau_moi->ten_dau_moi }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hoc_vien">Chọn Học Viên:</label>
+                <select id="hoc_vien" name="hoc_vien">
+                    <option value="">-- Chọn học viên --</option>
+                    @foreach($danh_sach_hoc_vien as $hv)
+                        <option value="{{ $hv->cccd }}" {{ isset($check) && $check->cccd == $hv->cccd ? 'selected' : '' }}>
+                            {{ $hv->ho }} - [{{ $hv->cccd }}]
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="cccd">Số CCCD</label>
                 <div class="input-group">
                     <input type="text" value="{{ isset($check) ? $check->cccd : '' }}" id="cccd" name="cccd"
                         placeholder="Nhập số CCCD" required>
                         <input type="hidden" id="cccdReal" name="cccdReal" value="{{ isset($check) ? $check->cccd : '' }}">
-                    <button type="button" class="check-btn" onclick="checkCCCD()">Kiểm tra</button>
+                    {{-- <button type="button" class="check-btn" onclick="checkCCCD()">Kiểm tra</button> --}}
                 </div>
             </div>
             <div class="form-group">
@@ -160,7 +189,7 @@ if (isset($_GET['cccd']) && !isset($check)) {
             </div>
             <div class="form-group">
                 <label for="giaovien">Giáo Viên:</label>
-                <input type="text" readonly value="{{ isset($check) ? $check->dau_moi : '' }}" required id="" name="daumoi" placeholder="Tự nhận theo dữ liệu">
+                <input type="text" readonly value="{{ isset($check) ? $check->dau_moi : '' }}" required id="giaovien" name="daumoi" placeholder="Tự nhận theo dữ liệu">
             </div>
             <div class="form-group">
                 <label for="ngayhoc">Ngày thi:</label>
@@ -171,6 +200,91 @@ if (isset($_GET['cccd']) && !isset($check)) {
         <a href="/" class="home-btn">Về Trang Chủ</a>
     </div>
     <script>
+        // Khởi tạo sự kiện khi DOM đã load
+        document.addEventListener('DOMContentLoaded', function() {
+            const hocVienSelect = document.getElementById('hoc_vien');
+            if (!hocVienSelect) {
+                console.error('Không tìm thấy element hoc_vien');
+                return;
+            }
+            
+            // Thêm event listener cho select học viên
+            hocVienSelect.addEventListener('change', function() {
+                console.log('Sự kiện thay đổi học viên được kích hoạt');
+                fillHocVienInfo();
+            });
+        });
+        
+        function filterHocVien() {
+            const dauMoiSelect = document.getElementById('dau_moi');
+            const selectedDauMoi = dauMoiSelect.value;
+            
+            // Xóa thông tin học viên hiện tại khi thay đổi đầu mối
+            document.getElementById('hoc_vien').selectedIndex = 0;
+            
+            clearHocVienInfo();
+            
+            // Chuyển hướng đến URL mới với tham số dau_moi
+            if (selectedDauMoi) {
+                window.location.href = '/dang-ky?dau_moi=' + encodeURIComponent(selectedDauMoi);
+            } else {
+                window.location.href = '/dang-ky';
+            }
+        }
+        
+        function fillHocVienInfo() {
+            const selectedValue = document.getElementById('hoc_vien').value;
+            
+            console.log('Học viên được chọn:', selectedValue);
+            
+            if (!selectedValue) {
+                console.log('Không có học viên nào được chọn, xóa thông tin');
+                clearHocVienInfo();
+                return;
+            }
+            
+            console.log('Đang cập nhật thông tin học viên với CCCD:', selectedValue);
+            
+            // Cập nhật các trường thông tin học viên
+            document.getElementById('cccd').value = selectedValue;
+            document.getElementById('cccdReal').value = selectedValue;
+            
+            // Gọi API để lấy thông tin chi tiết của học viên
+            console.log('Đang gọi API để lấy thông tin học viên với CCCD:', selectedValue);
+            fetch('/get-hoc-vien-info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ cccd: selectedValue })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Phản hồi từ API học viên:', data);
+                if (data.rc == 0 && data.data) {
+                    const hocVien = data.data;
+                    console.log('Thông tin học viên nhận được:', hocVien);
+                    
+                    document.getElementById('hoten').value = hocVien.ho_va_ten;
+                    document.getElementById('ngaysinh').value = hocVien.ngay_sinh;
+                    document.getElementById('khoahoc').value = hocVien.khoa_hoc;
+                    document.getElementById('giaovien').value = hocVien.dau_moi;
+                    
+                    console.log('Đã cập nhật thông tin học viên thành công');
+                    console.log('Họ tên:', hocVien.ho_va_ten);
+                    console.log('Ngày sinh:', hocVien.ngay_sinh);
+                    console.log('Khóa học:', hocVien.khoa_hoc);
+                    console.log('Đầu mối:', hocVien.dau_moi);
+                } else {
+                    console.error('Lỗi khi lấy thông tin học viên:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gọi API:', error);
+            });
+        }
+        
         function checkAvailableTimeSlots() {
             const selectedDate = document.getElementById('ngayhoc').value;
             if (!selectedDate) return;
@@ -186,8 +300,6 @@ if (isset($_GET['cccd']) && !isset($check)) {
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data);
-
                 const timeSelect = document.getElementById('giohoc');
                 const options = timeSelect.options;
                 
@@ -196,10 +308,8 @@ if (isset($_GET['cccd']) && !isset($check)) {
                 var duLieu = data.data;
                 // Cập nhật text cho từng option dựa trên số lượng đăng ký
                 for (let i = 0; i < options.length; i++) {
-                    console.log(options[i].value);
                     const timeValue = options[i].value;
                     const slotInfo = duLieu[i] // Giả sử max là 10 người
-                    console.log(slotInfo);
                     options[i].text = `${timeValue} - [${slotInfo?.total}/6]`;
                     // Disable option nếu đã đủ người
                     options[i].disabled = slotInfo?.total >= 6;
@@ -255,7 +365,8 @@ if (isset($_GET['cccd']) && !isset($check)) {
             .then(response => response.json())
             .then(data => {
                 if (data.rc == 0) {
-                    window.location.href = '/thanh-toan?cccd=' + encodeURIComponent(document.getElementById('cccdReal').value);
+                    //về trang home
+                    window.location.href = '/';
                 } else {
                     alert(data.message);
                 }
@@ -264,6 +375,18 @@ if (isset($_GET['cccd']) && !isset($check)) {
                 console.error('Error:', error);
                 alert('Có lỗi xảy ra khi đăng ký!');
             });
+        }
+        
+        // Hàm xóa thông tin học viên
+        function clearHocVienInfo() {
+            console.log('Đang xóa thông tin học viên');
+            document.getElementById('cccd').value = '';
+            document.getElementById('cccdReal').value = '';
+            document.getElementById('hoten').value = '';
+            document.getElementById('ngaysinh').value = '';
+            document.getElementById('khoahoc').value = '';
+            document.getElementById('giaovien').value = '';
+            console.log('Đã xóa thông tin học viên thành công');
         }
     </script>
 </body>

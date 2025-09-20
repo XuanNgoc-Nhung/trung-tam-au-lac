@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\nguoiDung;
 use App\Models\hocVien;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\HocPhiTemplateExport;
+use App\Exports\HocVienTemplateExport;
+use App\Imports\HocVienImport;
 use App\Models\hocPhan;
 use App\Models\CauHinh;
 use App\Models\DauMoi;
@@ -47,7 +50,7 @@ class NhapLieuController extends Controller
         
         // Apply search filters if they exist
         if ($request->has('keyword') && !empty($request->keyword)) {
-            $hoc_vien = hocVien::where('ho', 'like', '%' . $request->keyword . '%')
+            $hoc_vien = SatHach::where('ho', 'like', '%' . $request->keyword . '%')
                 ->orWhere('ten', 'like', '%' . $request->keyword . '%')
                 ->orWhere('cccd', 'like', '%' . $request->keyword . '%')
                 ->pluck('cccd');
@@ -168,9 +171,25 @@ class NhapLieuController extends Controller
         if (!$cauHinh) {
             return redirect()->route('home');
         }
+        $ngayThi = $cauHinh->ngay_thi;
+        $danh_sach_dau_moi = DauMoi::all();
+        $dau_moi_id = DauMoi::pluck('ma_dau_moi');
         
-        $check = hocPhi::where('sbd', $request->sbd)->where('ngay_thi', $request->ngay_thi)->first();
-        return view('dang-ky-3', compact(['check', 'cauHinh']));
+        // Lọc học viên theo đầu mối nếu có tham số dau_moi trong URL
+        if ($request->has('dau_moi') && !empty($request->dau_moi)) {
+            $danh_sach_hoc_vien = hocVien::where('dau_moi', $request->dau_moi)->get();
+        } else {
+            $danh_sach_hoc_vien = hocVien::whereIn('dau_moi', $dau_moi_id)->get();
+        }
+        $check = null;
+        if ($request->has('cccd') && !empty($request->cccd)) {
+            $check = hocVien::where('cccd', $request->cccd)->where('ngay_sat_hach', $ngayThi)->first();
+        } else {
+            $check = hocVien::where('cccd', $request->cccd)->where('ngay_sat_hach', $ngayThi)->first();
+        }
+        // Lấy danh sách học viên để hiển thị trong selectbox
+        
+        return view('dang-ky-2', compact(['check', 'cauHinh', 'ngayThi', 'danh_sach_dau_moi', 'danh_sach_hoc_vien']));
     }
     public function luuCauHinh(Request $request)
     {
@@ -351,6 +370,63 @@ class NhapLieuController extends Controller
             return response()->json(['rc' => 1, 'message' => 'Không tìm thấy học phần']);
         }
     }
+    public function getHocVienInfo(Request $request)
+    {
+        try {
+            $cccd = $request->input('cccd');
+            
+            \Log::info('=== API GET HỌC VIÊN INFO ===');
+            \Log::info('CCCD được yêu cầu:', ['cccd' => $cccd]);
+            
+            if (!$cccd) {
+                \Log::warning('CCCD không được cung cấp');
+                return response()->json(['rc' => 1, 'message' => 'CCCD không được để trống']);
+            }
+            
+            // Tìm học viên trong bảng hocPhi
+            $hocVien = hocVien::where('cccd', $cccd)->first();
+            
+            if (!$hocVien) {
+                \Log::warning('Không tìm thấy học viên với CCCD:', ['cccd' => $cccd]);
+                return response()->json(['rc' => 1, 'message' => 'Không tìm thấy học viên']);
+            }
+            
+            \Log::info('Tìm thấy học viên:', [
+                'cccd' => $hocVien->cccd,
+                'ho_va_ten' => $hocVien->ho . ' ' . $hocVien->ten,
+                'ngay_sinh' => $hocVien->ngay_sinh,
+                'khoa_hoc' => $hocVien->khoa_hoc,
+                'dau_moi' => $hocVien->dau_moi
+            ]);
+            
+            // Lấy thông tin đầu mối
+            $dauMoi = DauMoi::where('ma_dau_moi', $hocVien->dau_moi)->first();
+            $tenDauMoi = $dauMoi ? $dauMoi->ten_dau_moi : '';
+            
+            \Log::info('Thông tin đầu mối:', [
+                'ma_dau_moi' => $hocVien->dau_moi,
+                'ten_dau_moi' => $tenDauMoi
+            ]);
+            
+            $data = [
+                'cccd' => $hocVien->cccd,
+                'ho_va_ten' => $hocVien->ho . ' ' . $hocVien->ten,
+                'ngay_sinh' => $hocVien->ngay_sinh,
+                'khoa_hoc' => $hocVien->khoa_hoc,
+                'dau_moi' => $tenDauMoi
+            ];
+            
+            \Log::info('Dữ liệu trả về cho client:', $data);
+            \Log::info('=== KẾT THÚC API GET HỌC VIÊN INFO ===');
+            
+            return response()->json(['rc' => 0, 'data' => $data]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error getting hoc vien info: ' . $e->getMessage());
+            return response()->json(['rc' => 1, 'message' => 'Có lỗi xảy ra khi lấy thông tin học viên']);
+        }
+    }
+
     public function hocPhi(Request $request)
     {
         $query = hocPhi::query();
@@ -372,6 +448,10 @@ class NhapLieuController extends Controller
             $maThanhToan = substr($maThanhToan, 3);
             $query->where('id', $maThanhToan);
         }
+        if ($request->filled('ngay_thi')) {
+            $ngayThi = $request->ngay_thi;
+            $query->where('ngay_thi', $ngayThi);
+        }
         // Lọc theo trạng thái thanh toán
         if ($request->filled('trang_thai')) {
             $trangThai = $request->trang_thai;
@@ -389,5 +469,57 @@ class NhapLieuController extends Controller
         
         $hocViens = $query->get();
         return view('hoc-phi', compact('hocViens'));
+    }
+
+    // Tải mẫu Excel cho học phí
+    public function downloadHocPhiTemplate()
+    {
+        return Excel::download(new HocPhiTemplateExport, 'mau_import_hoc_phi.xlsx');
+    }
+
+    // Tải mẫu Excel cho học viên
+    public function downloadHocVienTemplate()
+    {
+        return Excel::download(new HocVienTemplateExport, 'mau_import_hoc_vien.xlsx');
+    }
+
+    // Import học viên từ Excel
+    public function importHocVien(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls|max:10240', // Max 10MB
+        ]);
+
+        try {
+            $import = new HocVienImport();
+            Excel::import($import, $request->file('excel_file'));
+            
+            $importedCount = $import->getRowCount();
+            $errors = $import->errors();
+            
+            if (count($errors) > 0) {
+                $errorMessages = [];
+                foreach ($errors as $error) {
+                    $errorMessages[] = "Dòng {$error->row()}: {$error->errors()[0]}";
+                }
+                
+                return response()->json([
+                    'rc' => 1, 
+                    'message' => "Import thành công {$importedCount} học viên. Có " . count($errors) . " dòng bị lỗi: " . implode(', ', $errorMessages)
+                ]);
+            }
+            
+            return response()->json([
+                'rc' => 0, 
+                'message' => "Import thành công {$importedCount} học viên"
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Lỗi import học viên: ' . $e->getMessage());
+            return response()->json([
+                'rc' => 1, 
+                'message' => 'Import thất bại: ' . $e->getMessage()
+            ]);
+        }
     }
 } 

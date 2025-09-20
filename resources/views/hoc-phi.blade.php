@@ -352,7 +352,7 @@
                                             <i class="fas fa-eye me-2"></i>Xem trước dữ liệu
                                         </button>
                                         <button type="button" class="btn btn-secondary" onclick="downloadTemplate()">
-                                            <i class="fas fa-download me-2"></i>Tải mẫu CSV
+                                            <i class="fas fa-download me-2"></i>Tải mẫu XLSX
                                         </button>
                                     </div>
                                 </form>
@@ -1001,30 +1001,15 @@
         }
     }
 
-    // Tải mẫu file CSV
+    // Tải mẫu file XLSX
     function downloadTemplate() {
-        const template = `Số báo danh,Họ và tên,Ngày sinh,CCCD,Địa chỉ,Hạng,Đầu mối,Lệ phí,Trạng thái thanh toán
-001,Nguyễn Văn A,01/01/2000,1234567890123,123 Đường ABC Quận 1 TP.HCM,B2,Đầu mối 1,5000000,Đã thanh toán
-002,Trần Thị B,02/02/2001,9876543210987,456 Đường XYZ Quận 2 TP.HCM,B1,Đầu mối 2,6000000,Đã thanh toán
-003,Lê Văn C,15/03/1995,1112223334445,789 Đường DEF Quận 3 TP.HCM,A1,Đầu mối 3,7500000,Chưa thanh toán
-004,Phạm Thị D,20/04/1998,5556667778889,321 Đường GHI Quận 4 TP.HCM,B2,Đầu mối 1,5500000,Đã thanh toán
-005,Hoàng Văn E,10/05/1997,9998887776665,654 Đường JKL Quận 5 TP.HCM,A2,Đầu mối 2,8000000,Chưa thanh toán
-006,Võ Thị F,25/06/1996,3334445556667,987 Đường MNO Quận 6 TP.HCM,B1,Đầu mối 3,7000000,Đã thanh toán
-007,Đặng Văn G,05/07/1999,7778889990001,147 Đường PQR Quận 7 TP.HCM,A1,Đầu mối 1,9000000,Chưa thanh toán
-008,Bùi Thị H,30/08/1994,2223334445556,258 Đường STU Quận 8 TP.HCM,B2,Đầu mối 2,6500000,Đã thanh toán
-009,Dương Văn I,12/09/1993,8889990001112,369 Đường VWX Quận 9 TP.HCM,A2,Đầu mối 3,8500000,Chưa thanh toán
-010,Ngô Thị K,18/10/1992,4445556667778,741 Đường YZA Quận 10 TP.HCM,B1,Đầu mối 1,5500000,Chưa thanh toán`;
-        const blob = new Blob([template], {
-            type: 'text/csv;charset=utf-8'
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'mau_import_hoc_vien.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Tạo link tải file từ server
+        const link = document.createElement('a');
+        link.href = '/hoc-phi/download-template';
+        link.download = 'mau_import_hoc_phi.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function exportExcel() {

@@ -229,7 +229,7 @@ if (isset($_GET['cccd']) && !isset($check)) {
         <h2>Kiểm tra tình trạng thanh toán</h2>
         <form id="registrationForm" onsubmit="handleSubmit(event)">
             <div class="form-group">
-                <label for="cccd">Số Báo danh {{$cauHinh}}</label>
+                <label for="cccd">Số Báo danh</label>
                 <div class="input-group">
                     <input type="text" id="ngayThi" placeholder="Ngày thi" name="ngayThi" value="{{ isset($cauHinh) ? $cauHinh->ngay_thi : '' }}" readonly>
                     <input type="text" value="{{ isset($check) ? $check->sbd : '' }}" id="sbd" name="sbd"

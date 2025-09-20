@@ -66,7 +66,6 @@
                                     <th>Thực hành</th>
                                     <th>Đường trường</th>
                                     <th>Ngày đăng ký</th>
-                                    <th>Học phí</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,7 +82,7 @@
                                     <td>{{ $satHach->cccd }}</td>
                                     <td>
                                         @if($satHach->hocVien && $satHach->hocVien->ngay_sinh)
-                                        {{ \Carbon\Carbon::parse($satHach->hocVien->ngay_sinh)->format('d/m/Y') }}
+                                        {{ $satHach->hocVien->ngay_sinh }}
                                         @else
                                         <span class="text-muted">-</span>
                                         @endif
@@ -104,7 +103,7 @@
                                     </td>
                                     <td>
                                         @if($satHach->hocVien && $satHach->hocVien->ngay_sat_hach)
-                                        {{ \Carbon\Carbon::parse($satHach->hocVien->ngay_sat_hach)->format('d/m/Y') }}
+                                        {{ $satHach->hocVien->ngay_sat_hach }}
                                         @else
                                         <span class="text-muted">-</span>
                                         @endif
@@ -145,15 +144,12 @@
                                         @endif
                                     </td>
                                     <td>
-                                        {{ \Carbon\Carbon::parse($satHach->created_at)->format('d/m/Y H:i') }}
-                                    </td>
-                                    <td>
-                                    <p>{{ $satHach->ghi_chu }}</p>
+                                        {{ $satHach->created_at }}
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="13" class="text-center text-muted">
+                                    <td colspan="12" class="text-center text-muted">
                                         <i class="fas fa-info-circle"></i> Không có học viên nào đăng ký sát hạch
                                     </td>
                                 </tr>

@@ -7,6 +7,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Quản Lý Khóa Học')</title>
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -26,13 +31,15 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Times New Roman', Times, serif;
             background-color: #f8f9fa;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            font-weight: 400;
+            line-height: 1.6;
         }
 
         /* Header Styles */
@@ -58,9 +65,10 @@
 
         .logo {
             font-size: 1.5rem;
-            font-weight: bold;
+            font-weight: 700;
             color: white;
             text-decoration: none;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .logo:hover {
@@ -77,6 +85,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .user-avatar {
@@ -130,6 +139,8 @@
             text-decoration: none;
             transition: all 0.3s ease;
             gap: 12px;
+            font-family: 'Times New Roman', Times, serif;
+            font-weight: 400;
         }
 
         .sidebar-menu a:hover {
@@ -181,8 +192,9 @@
         .page-title {
             color: var(--primary-color);
             font-size: 1.8rem;
-            font-weight: 600;
+            font-weight: 700;
             margin: 0;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .breadcrumb {
@@ -298,11 +310,30 @@
         .form-control {
             border-radius: 8px;
             border: 1px solid #e9ecef;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .form-control:focus {
             border-color: var(--accent-color);
             box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        /* Typography optimization for Times New Roman */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Times New Roman', Times, serif;
+            font-weight: 700;
+        }
+
+        p, span, div {
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .btn {
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .table {
+            font-family: 'Times New Roman', Times, serif;
         }
     </style>
 </head>
@@ -339,7 +370,7 @@
                         <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Hồ sơ</a></li>
                         <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                        <li><a class="dropdown-item" href="{{ route('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                     </ul>
                 </div>
             </div>
@@ -359,7 +390,7 @@
                     <span>Trang chủ</span>
                 </a>
             </li>
-            <li>
+            {{-- <li>
                 <a href="{{ route('sat-hach.index') }}" class="{{ request()->routeIs('sat-hach.*') ? 'active' : '' }}">
                     <i class="fas fa-clipboard-check"></i>
                     <span>Sát hạch</span>
@@ -376,11 +407,17 @@
                     <i class="fas fa-edit"></i>
                     <span>Học viên</span>
                 </a>
+            </li> --}}
+            <li>
+                <a href="{{ route('hoc-phi.index') }}" class="{{ request()->routeIs('hoc-phi.*') ? 'active' : '' }}">
+                    <i class="fas fa-money-bill"></i>
+                    <span>Học phí</span>
+                </a>
             </li>
             <li>
                 <a href="{{ route('cau-hinh.index') }}" class="{{ request()->routeIs('cau-hinh.*') ? 'active' : '' }}">
                     <i class="fas fa-cogs"></i>
-                    <span>Cấu hình hệ thống</span>
+                    <span>Cấu hình</span>
                 </a>
             </li>
         </ul>
@@ -400,6 +437,9 @@
         @include('layouts.footer')
     @endif
 
+    <!-- Axios for HTTP requests -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     

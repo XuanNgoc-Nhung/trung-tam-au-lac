@@ -6,7 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ThanhToanController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 })->name('home');
 
 // Routes cho UserController (quản lý học viên)
@@ -32,6 +32,7 @@ Route::get('/hoan-thanh', [ThanhToanController::class, 'hoanThanh'])->name('hoan
 // Routes cho NhapLieuController (giữ nguyên)
 Route::get('/danh-sach-hoc-vien', [NhapLieuController::class, 'danhSachHocVien'])->name('danh-sach-hoc-vien');
 Route::get('/le-phi', [NhapLieuController::class, 'dangKy'])->name('dang-ky');
+Route::get('/dang-ky', [NhapLieuController::class, 'dangKy'])->name('dang-ky');
 Route::get('/tra-cuu', [NhapLieuController::class, 'traCuu'])->name('tra-cuu');
 Route::get('/nhap-lieu', [NhapLieuController::class, 'nhapLieu'])->name('nhap-lieu');
 Route::get('/hoc-phan', [NhapLieuController::class, 'hocPhan'])->name('hoc-phan.index');
@@ -44,6 +45,9 @@ Route::group(['prefix' => 'admin','middleware' => 'loginAdmin'], function () {
     Route::get('/', [NhapLieuController::class, 'admin'])->name('admin');
     Route::get('/cau-hinh', [NhapLieuController::class, 'cauHinh'])->name('cau-hinh.index');
 Route::get('/hoc-phi', [NhapLieuController::class, 'hocPhi'])->name('hoc-phi.index');
+Route::get('/hoc-phi/download-template', [NhapLieuController::class, 'downloadHocPhiTemplate'])->name('hoc-phi.download-template');
+Route::get('/hoc-vien/download-template', [NhapLieuController::class, 'downloadHocVienTemplate'])->name('hoc-vien.download-template');
+Route::post('/hoc-vien/import', [NhapLieuController::class, 'importHocVien'])->name('hoc-vien.import');
 });
 
 Route::get('/xac-nhan', function () {
@@ -55,6 +59,7 @@ Route::post('/luu-cau-hinh', [NhapLieuController::class, 'luuCauHinh'])->name('c
 Route::post('/nhap-lieu-json', [NhapLieuController::class, 'uploadJson'])->name('nhap-lieu.uploadJson');
 Route::post('/dang-ky-hoc-phan', [NhapLieuController::class, 'dangKyHocPhan'])->name('dang-ky-hoc-phan');
 Route::post('/check-available-slots', [NhapLieuController::class, 'checkAvailableSlots'])->name('check-available-slots');
+Route::post('/get-hoc-vien-info', [NhapLieuController::class, 'getHocVienInfo'])->name('get-hoc-vien-info');
 Route::post('/cap-nhat-hoc-vien', [NhapLieuController::class, 'capNhatHocVien'])->name('cap-nhat-hoc-vien');
 Route::post('/cap-nhat-trang-thai/{id}', [NhapLieuController::class, 'capNhatTrangThai'])->name('cap-nhat-trang-thai');
 Route::post('/xoa-hoc-vien', [NhapLieuController::class, 'xoaHocVien'])->name('xoa-hoc-vien');

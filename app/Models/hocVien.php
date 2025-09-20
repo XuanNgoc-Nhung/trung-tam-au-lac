@@ -21,12 +21,11 @@ class hocVien extends Model
         'noi_dung_thi',
         'ngay_sat_hach',
         'dau_moi',
+        'ghi_chu',
         'ly_thuyet',
         'mo_phong',
         'thuc_hanh',
         'duong_truong',
-        'hoc_phi',
-        'da_thanh_toan'
     ];
     public function dauMoi()
     {

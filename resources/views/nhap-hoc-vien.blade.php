@@ -328,7 +328,7 @@
                                             <i class="fas fa-eye me-2"></i>Xem trước dữ liệu
                                         </button>
                                         <button type="button" class="btn btn-secondary" onclick="downloadTemplate()">
-                                            <i class="fas fa-download me-2"></i>Tải mẫu CSV
+                                            <i class="fas fa-download me-2"></i>Tải mẫu XLSX
                                         </button>
                                     </div>
                                 </form>
@@ -970,24 +970,15 @@
         }
     }
 
-    // Tải mẫu file CSV
+    // Tải mẫu file XLSX
     function downloadTemplate() {
-        const template = `
-Họ,Tên,Ngày sinh,CCCD,Địa chỉ,Khóa học,Nội dung thi,Ngày sát hạch,Đầu mối,Lý thuyết,Mô phỏng,Thực hành,Đường trường
-Nguyễn,Văn A,01/01/2000,1234567890123,123 Đường ABC,Khóa 1,Bài thi 1,01/01/2023,Đầu mối 1,50,50,50,50
-Trần,Thị B,02/02/2001,9876543210987,456 Đường XYZ,Khóa 2,Bài thi 2,02/02/2023,Đầu mối 2,60,60,60,60
-`;
-        const blob = new Blob([template], {
-            type: 'text/csv'
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'hoc_vien_template.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Tạo link tải file từ server
+        const link = document.createElement('a');
+        link.href = '/hoc-vien/download-template';
+        link.download = 'mau_import_hoc_vien.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function exportExcel() {
