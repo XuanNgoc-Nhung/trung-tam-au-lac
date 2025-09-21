@@ -262,7 +262,8 @@ class NhapLieuController extends Controller
             $ngayThi = $cauHinh->ngay_thi;
             $dataCreate = [
                 'cccd' => $data['cccd'],
-                'ngay_thi' => $ngayThi
+                'ngay_thi' => $ngayThi,
+                'dau_moi' => $hocVien->dau_moi,
             ];
             $satHach = SatHach::create($dataCreate);
             \Log::info('SatHach created successfully:', ['satHach' => $satHach]);
@@ -309,21 +310,42 @@ class NhapLieuController extends Controller
 
             // Format và chèn từng bản ghi vào database
             foreach ($data as $item) {
-                $formattedData = [
-                    'ho' => $item[2] ?? null,
-                    'ten' => $item[3] ?? null,
-                    'ngay_sinh' => $item[4] ?? null,
-                    'cccd' => $item[5] ?? null,
-                    'dia_chi' => $item[6] ?? null,
-                    'khoa_hoc' => $item[7] ?? null,
-                    'noi_dung_thi' => $item[8] ?? null,
-                    'ngay_sat_hach' => $item[9] ?? null,
-                    'dau_moi' => $item[10] ?? null,
-                    'ly_thuyet' => $item[11] ?? null,
-                    'mo_phong' => $item[12] ?? null,
-                    'thuc_hanh' => $item[13] ?? null,
-                    'duong_truong' => $item[14] ?? null
-                ];
+                // Kiểm tra xem item có phải là object với key là string (từ nhap-lieu-2.blade.php) hay không
+                if (isset($item['ho']) || isset($item['ten'])) {
+                    // Format từ nhap-lieu-2.blade.php (object với key string)
+                    $formattedData = [
+                        'ho' => $item['ho'] ?? null,
+                        'ten' => $item['ten'] ?? null,
+                        'ngay_sinh' => $item['ngay_sinh'] ?? null,
+                        'cccd' => $item['cccd'] ?? null,
+                        'dia_chi' => $item['dia_chi'] ?? null,
+                        'khoa_hoc' => $item['khoa_hoc'] ?? null,
+                        'noi_dung_thi' => $item['noi_dung_thi'] ?? null,
+                        'ngay_sat_hach' => $item['ngay_sat_hach'] ?? null,
+                        'dau_moi' => $item['dau_moi'] ?? null,
+                        'ly_thuyet' => $item['ly_thuyet'] ?? null,
+                        'mo_phong' => $item['mo_phong'] ?? null,
+                        'thuc_hanh' => $item['thuc_hanh'] ?? null,
+                        'duong_truong' => $item['duong_truong'] ?? null
+                    ];
+                } else {
+                    // Format từ nhap-lieu.blade.php (object với key là số)
+                    $formattedData = [
+                        'ho' => $item['2'] ?? null,
+                        'ten' => $item['3'] ?? null,
+                        'ngay_sinh' => $item['4'] ?? null,
+                        'cccd' => $item['5'] ?? null,
+                        'dia_chi' => $item['6'] ?? null,
+                        'khoa_hoc' => $item['7'] ?? null,
+                        'noi_dung_thi' => $item['8'] ?? null,
+                        'ngay_sat_hach' => $item['9'] ?? null,
+                        'dau_moi' => $item['10'] ?? null,
+                        'ly_thuyet' => $item['11'] ?? null,
+                        'mo_phong' => $item['12'] ?? null,
+                        'thuc_hanh' => $item['13'] ?? null,
+                        'duong_truong' => $item['14'] ?? null
+                    ];
+                }
                 hocVien::create($formattedData);
             }
             
@@ -486,6 +508,13 @@ class NhapLieuController extends Controller
     // Import học viên từ Excel
     public function importHocVien(Request $request)
     {
+        // Kiểm tra xem request có chứa JSON data không
+        if ($request->has('data') && is_array($request->data)) {
+            // Xử lý JSON data
+            return $this->importHocVienFromJson($request);
+        }
+        
+        // Xử lý file upload (giữ nguyên logic cũ)
         $request->validate([
             'excel_file' => 'required|file|mimes:xlsx,xls|max:10240', // Max 10MB
         ]);
@@ -518,6 +547,91 @@ class NhapLieuController extends Controller
             Log::error('Lỗi import học viên: ' . $e->getMessage());
             return response()->json([
                 'rc' => 1, 
+                'message' => 'Import thất bại: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // Import học viên từ JSON data
+    private function importHocVienFromJson(Request $request)
+    {
+        try {
+            $data = $request->input('data');
+            $total = count($data);
+            $successCount = 0;
+            $errorCount = 0;
+            $duplicateCount = 0;
+            $errors = [];
+
+            \Log::info('Import JSON data:', ['total' => $total]);
+
+            foreach ($data as $index => $item) {
+                try {
+                    // Kiểm tra dữ liệu bắt buộc
+                    if (empty($item['ho']) || empty($item['ten']) || empty($item['cccd'])) {
+                        $errors[] = "Dòng " . ($index + 1) . ": Thiếu thông tin bắt buộc (Họ, Tên, CCCD)";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Kiểm tra CCCD đã tồn tại chưa
+                    $existingHocVien = hocVien::where('cccd', $item['cccd'])->first();
+                    if ($existingHocVien) {
+                        $duplicateCount++;
+                        continue; // Bỏ qua nếu đã tồn tại
+                    }
+
+                    // Tạo học viên mới
+                    $hocVienData = [
+                        'ho' => $item['ho'],
+                        'ten' => $item['ten'],
+                        'ngay_sinh' => $item['ngay_sinh'],
+                        'cccd' => $item['cccd'],
+                        'dia_chi' => $item['dia_chi'],
+                        'khoa_hoc' => $item['khoa_hoc'],
+                        'noi_dung_thi' => $item['noi_dung_thi'],
+                        'ngay_sat_hach' => $item['ngay_sat_hach'],
+                        'dau_moi' => $item['dau_moi'],
+                        'ghi_chu' => $item['ghi_chu'],
+                        'ly_thuyet' => (int)($item['ly_thuyet'] ?? 0),
+                        'mo_phong' => (int)($item['mo_phong'] ?? 0),
+                        'thuc_hanh' => (int)($item['thuc_hanh'] ?? 0),
+                        'duong_truong' => (int)($item['duong_truong'] ?? 0),
+                    ];
+
+                    hocVien::create($hocVienData);
+                    $successCount++;
+
+                } catch (\Exception $e) {
+                    $errors[] = "Dòng " . ($index + 1) . ": " . $e->getMessage();
+                    $errorCount++;
+                    \Log::error('Lỗi tạo học viên dòng ' . ($index + 1) . ': ' . $e->getMessage());
+                }
+            }
+
+            \Log::info('Import kết quả:', [
+                'total' => $total,
+                'success' => $successCount,
+                'error' => $errorCount,
+                'duplicate' => $duplicateCount
+            ]);
+
+            return response()->json([
+                'rc' => 0,
+                'success' => true,
+                'total' => $total,
+                'success_count' => $successCount,
+                'error_count' => $errorCount,
+                'duplicate_count' => $duplicateCount,
+                'errors' => $errors,
+                'message' => "Import hoàn thành: {$successCount} thành công, {$errorCount} lỗi, {$duplicateCount} trùng lặp"
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Lỗi import JSON: ' . $e->getMessage());
+            return response()->json([
+                'rc' => 1,
+                'success' => false,
                 'message' => 'Import thất bại: ' . $e->getMessage()
             ]);
         }

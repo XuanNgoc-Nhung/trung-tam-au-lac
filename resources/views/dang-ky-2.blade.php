@@ -127,6 +127,79 @@ if (isset($_GET['cccd']) && !isset($check)) {
             background: #616161;
         }
 
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #4CAF50;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .modal-body {
+            margin-bottom: 30px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            min-width: 120px;
+        }
+
+        .modal-btn.continue {
+            background: #2196f3;
+            color: white;
+        }
+
+        .modal-btn.continue:hover {
+            background: #1976d2;
+        }
+
+        .modal-btn.home {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .modal-btn.home:hover {
+            background: #388E3C;
+        }
+
         /* Plain select styling */
         .form-group select:focus {
             border-color: #2196f3;
@@ -163,7 +236,7 @@ if (isset($_GET['cccd']) && !isset($check)) {
                     @endforeach
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
                 <label for="cccd">Số CCCD</label>
                 <div class="input-group">
                     <input type="text" value="{{ isset($check) ? $check->cccd : '' }}" id="cccd" name="cccd"
@@ -187,7 +260,7 @@ if (isset($_GET['cccd']) && !isset($check)) {
                 <input type="text" value="{{ isset($check) ? $check->ngay_sinh : '' }}" id="ngaysinh" name="ngaysinh"
                     placeholder="Tự nhận theo dữ liệu" readonly>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
                 <label for="giaovien">Giáo Viên:</label>
                 <input type="text" readonly value="{{ isset($check) ? $check->dau_moi : '' }}" required id="giaovien" name="daumoi" placeholder="Tự nhận theo dữ liệu">
             </div>
@@ -198,6 +271,22 @@ if (isset($_GET['cccd']) && !isset($check)) {
             <button type="submit" class="register-btn">Đăng Ký</button>
         </form>
         <a href="/" class="home-btn">Về Trang Chủ</a>
+    </div>
+
+    <!-- Modal thông báo thành công -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✅ Đăng ký thành công!</h3>
+            </div>
+            <div class="modal-body">
+                <p>Bạn đã đăng ký khóa học thành công. Bạn có muốn tiếp tục đăng ký cho học viên khác không?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn continue" onclick="continueRegistration()">Đăng ký tiếp</button>
+                <button class="modal-btn home" onclick="goToHome()">Về trang chủ</button>
+            </div>
+        </div>
     </div>
     <script>
         // Khởi tạo sự kiện khi DOM đã load
@@ -365,8 +454,8 @@ if (isset($_GET['cccd']) && !isset($check)) {
             .then(response => response.json())
             .then(data => {
                 if (data.rc == 0) {
-                    //về trang home
-                    window.location.href = '/';
+                    // Hiển thị modal thông báo thành công
+                    showSuccessModal();
                 } else {
                     alert(data.message);
                 }
@@ -387,6 +476,41 @@ if (isset($_GET['cccd']) && !isset($check)) {
             document.getElementById('khoahoc').value = '';
             document.getElementById('giaovien').value = '';
             console.log('Đã xóa thông tin học viên thành công');
+        }
+
+        // Hàm hiển thị modal thông báo thành công
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'block';
+        }
+
+        // Hàm đóng modal
+        function closeModal() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'none';
+        }
+
+        // Hàm xử lý khi nhấn "Đăng ký tiếp"
+        function continueRegistration() {
+            closeModal();
+            // Reset form để đăng ký tiếp
+            document.getElementById('registrationForm').reset();
+            clearHocVienInfo();
+            // Focus vào select đầu mối
+            document.getElementById('dau_moi').focus();
+        }
+
+        // Hàm xử lý khi nhấn "Về trang chủ"
+        function goToHome() {
+            window.location.href = '/';
+        }
+
+        // Đóng modal khi click bên ngoài
+        window.onclick = function(event) {
+            const modal = document.getElementById('successModal');
+            if (event.target == modal) {
+                closeModal();
+            }
         }
     </script>
 </body>

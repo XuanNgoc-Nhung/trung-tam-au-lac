@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class SatHach extends Model
 {
     protected $table = 'sat_hach';
-    protected $fillable = ['cccd', 'ngay_thi'];
+    protected $fillable = ['cccd', 'ngay_thi', 'dau_moi'];
     public function hocVien()
     {
         return $this->belongsTo(hocVien::class, 'cccd', 'cccd');

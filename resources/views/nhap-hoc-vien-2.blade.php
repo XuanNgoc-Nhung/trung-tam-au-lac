@@ -339,7 +339,7 @@
                                         <button type="submit" class="btn btn-primary" id="previewBtn">
                                             <i class="fas fa-upload me-2"></i>Import dữ liệu
                                         </button>
-                                        <a href="{{ route('hoc-vien.download-template') }}" class="btn btn-secondary">
+                                        <a href="https://docs.google.com/spreadsheets/d/1u1e_p3Cp1k2R-L2zKLm7h5nqdi0ugBgl/edit?usp=sharing&ouid=113313001289157918678&rtpof=true&sd=true" target="_blank" class="btn btn-secondary">
                                             <i class="fas fa-download me-2"></i>Tải mẫu XLSX
                                         </a>
                                     </div>
@@ -484,46 +484,132 @@
             return;
         }
 
-        // Tạo FormData để gửi file
-        const formData = new FormData();
-        formData.append('excel_file', file);
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-
         // Hiển thị loading
         const previewBtn = document.getElementById('previewBtn');
         const originalText = previewBtn.innerHTML;
         previewBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
         previewBtn.disabled = true;
 
-        // Gửi request import
-        fetch('{{ route("hoc-vien.import") }}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        // Đọc file Excel/CSV và convert sang JSON
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                let jsonData;
+
+                // Kiểm tra loại file
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    // Xử lý file CSV
+                    const csvText = new TextDecoder().decode(data);
+                    jsonData = CSVToArray(csvText);
+                } else {
+                    // Xử lý file Excel
+                    const workbook = XLSX.read(data, {
+                        type: 'array'
+                    });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                        header: 1
+                    });
+                }
+
+                // Bỏ qua hàng tiêu đề (hàng đầu tiên)
+                const headers = jsonData.shift();
+
+                // Lọc bỏ các hàng trống và format dữ liệu
+                const dataRows = [];
+                let actualDataIndex = 0; // Đếm số thứ tự thực tế của dữ liệu
+
+                jsonData.forEach((row, index) => {
+                    // Kiểm tra xem hàng có phải là hàng tiêu đề không (chứa các từ khóa tiêu đề)
+                    const isHeaderRow = row && row.length > 0 && (
+                        String(row[0]).toLowerCase().includes('họ') ||
+                        String(row[0]).toLowerCase().includes('ho') ||
+                        String(row[1]).toLowerCase().includes('tên') ||
+                        String(row[1]).toLowerCase().includes('ten') ||
+                        String(row[2]).toLowerCase().includes('ngày sinh') ||
+                        String(row[2]).toLowerCase().includes('ngay sinh') ||
+                        String(row[3]).toLowerCase().includes('cccd') ||
+                        String(row[3]).toLowerCase().includes('cmnd')
+                    );
+
+                    // Chỉ xử lý các hàng không phải tiêu đề và có dữ liệu
+                    if (row && row.some(cell => cell !== null && cell !== '') && !isHeaderRow) {
+                        actualDataIndex++; // Tăng số thứ tự thực tế
+                        dataRows.push({
+                            'row_number': index + 2, // Số thứ tự hàng trong Excel (bắt đầu từ hàng 2)
+                            'display_index': actualDataIndex, // Số thứ tự hiển thị trong bảng xem trước
+                            'ho': String(row[0] || ''),
+                            'ten': String(row[1] || ''),
+                            'ngay_sinh': String(row[2] || ''),
+                            'cccd': String(row[3] || ''),
+                            'dia_chi': String(row[4] || ''),
+                            'khoa_hoc': String(row[5] || ''),
+                            'noi_dung_thi': String(row[6] || ''),
+                            'ngay_sat_hach': String(row[7] || ''),
+                            'dau_moi': String(row[8] || ''),
+                            'ghi_chu': String(row[9] || ''),
+                            'ly_thuyet': String(row[10] || '0'),
+                            'mo_phong': String(row[11] || '0'),
+                            'thuc_hanh': String(row[12] || '0'),
+                            'duong_truong': String(row[13] || '0'),
+                            'hoc_phi': String(row[14] || '0'),
+                            'da_thanh_toan': String(row[15] || 'Không')
+                        });
+                    }
+                });
+
+                // Lưu dữ liệu để import sau
+                previewData = dataRows;
+
+                // Hiển thị bảng xem trước
+                displayPreviewTable(dataRows);
+                document.getElementById('previewSection').style.display = 'block';
+
+                // Hiển thị thông báo thành công
+                const resultDiv = document.getElementById('importResult');
+                const resultContent = document.getElementById('resultContent');
+                resultDiv.style.display = 'block';
+                resultContent.innerHTML = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>Đọc file thành công!</h6>
+                    <p class="mb-0">Tìm thấy ${dataRows.length} dòng dữ liệu. Vui lòng kiểm tra và xác nhận import.</p>
+                </div>
+            `;
+
+                // Nếu không có dữ liệu hợp lệ, hiển thị thông báo lỗi
+                if (dataRows.length === 0) {
+                    showErrorModal('Không có dữ liệu hợp lệ!',
+                        'File không chứa dữ liệu hợp lệ hoặc tất cả các hàng đều bị bỏ qua. Vui lòng kiểm tra lại file.'
+                        );
+                }
+
+            } catch (error) {
+                showErrorModal('Lỗi đọc file!',
+                    `Không thể đọc file. Vui lòng kiểm tra định dạng file.<br><br><strong>Chi tiết lỗi:</strong><br>${error.message}`
+                    );
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.rc === 0) {
-                showSuccessModal('Import thành công!', data.message);
-                // Reload trang để hiển thị dữ liệu mới
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                showErrorModal('Import thất bại!', data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showErrorModal('Lỗi hệ thống!', 'Có lỗi xảy ra khi import dữ liệu.');
-        })
-        .finally(() => {
-            // Khôi phục nút
+
+            // Reset button
             previewBtn.innerHTML = originalText;
             previewBtn.disabled = false;
-        });
+        };
+
+        reader.onerror = function () {
+            showErrorModal('Lỗi đọc file!', `Không thể đọc file. Vui lòng thử lại.<br><br><strong>Nguyên nhân có thể:</strong><br>
+        <ul>
+            <li>File bị hỏng hoặc không đúng định dạng</li>
+            <li>File quá lớn</li>
+            <li>Trình duyệt không hỗ trợ định dạng file này</li>
+        </ul>`);
+
+            // Reset button
+            previewBtn.innerHTML = originalText;
+            previewBtn.disabled = false;
+        };
+
+        reader.readAsArrayBuffer(file);
     });
 
     // Xử lý form xem trước Excel (giữ lại cho tương lai nếu cần)
@@ -723,16 +809,6 @@
                     ${row.duong_truong || 0}
                 </span>
             </td>
-            <td>
-                <span class="text-success fw-bold">
-                    ${parseInt(row.hoc_phi).toLocaleString('vi-VN')} VNĐ
-                </span>
-            </td>
-            <td>
-                <span class="badge ${row.da_thanh_toan === 'Có' ? 'bg-success' : 'bg-warning'}">
-                    ${row.da_thanh_toan || 'Không'}
-                </span>
-            </td>
         `;
             tbody.appendChild(tr);
         });
@@ -778,7 +854,7 @@
     `;
 
         // Gửi dữ liệu JSON để import
-        fetch('/hoc-vien/import-json', {
+        fetch('{{ route("hoc-vien.import") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -798,26 +874,26 @@
                 // Hiển thị kết quả
                 resultDiv.style.display = 'block';
 
-                if (data.success) {
+                if (data.rc === 0 || data.success) {
                     let resultHtml = `
                 <div class="alert alert-success">
                     <h6><i class="fas fa-check-circle me-2"></i>Import thành công!</h6>
                     <div class="row">
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h4 class="text-success mb-0">${data.total}</h4>
+                                <h4 class="text-success mb-0">${data.total || previewData.length}</h4>
                                 <small>Tổng số dòng</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h4 class="text-success mb-0">${data.success_count}</h4>
+                                <h4 class="text-success mb-0">${data.success_count || previewData.length}</h4>
                                 <small>Thành công</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h4 class="text-danger mb-0">${data.error_count}</h4>
+                                <h4 class="text-danger mb-0">${data.error_count || 0}</h4>
                                 <small>Lỗi</small>
                             </div>
                         </div>
@@ -859,14 +935,14 @@
                     }
 
                     // Hiển thị thông báo thành công chi tiết
-                    if (data.success_count > 0) {
+                    if ((data.success_count || previewData.length) > 0) {
                         resultHtml += `
                     <div class="alert alert-info">
                         <h6><i class="fas fa-info-circle me-2"></i>Thông báo:</h6>
                         <ul class="mb-0">
-                            <li>Đã import thành công ${data.success_count} học viên vào hệ thống</li>
-                            ${data.error_count > 0 ? `<li>Có ${data.error_count} dòng bị lỗi và không được import</li>` : ''}
-                            ${data.duplicate_count > 0 ? `<li>Có ${data.duplicate_count} dòng bị trùng lặp CCCD</li>` : ''}
+                            <li>Đã import thành công ${data.success_count || previewData.length} học viên vào hệ thống</li>
+                            ${(data.error_count || 0) > 0 ? `<li>Có ${data.error_count} dòng bị lỗi và không được import</li>` : ''}
+                            ${(data.duplicate_count || 0) > 0 ? `<li>Có ${data.duplicate_count} dòng bị trùng lặp CCCD</li>` : ''}
                             <li>Trang sẽ được tải lại sau 3 giây để hiển thị dữ liệu mới</li>
                         </ul>
                     </div>
@@ -876,7 +952,7 @@
                     resultContent.innerHTML = resultHtml;
 
                     // Nếu import thành công, reload trang sau 3 giây
-                    if (data.success_count > 0) {
+                    if ((data.success_count || previewData.length) > 0) {
                         setTimeout(() => {
                             location.reload();
                         }, 3000);

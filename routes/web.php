@@ -21,7 +21,7 @@ Route::put('/hoc-vien/{id}', [UserController::class, 'update'])->name('hoc-vien.
 Route::delete('/hoc-vien/{id}', [UserController::class, 'destroy'])->name('hoc-vien.destroy');
 Route::post('/hoc-vien/import-excel', [UserController::class, 'importExcel'])->name('hoc-vien.import-excel');
 Route::post('/hoc-vien/import-json', [UserController::class, 'importFromJson'])->name('hoc-vien.import-json');
-Route::get('/hoc-vien/download-template', [UserController::class, 'downloadTemplate'])->name('hoc-vien.download-template');
+// Route::get('/hoc-vien/download-template', [UserController::class, 'downloadTemplate'])->name('hoc-vien.download-template'); // Commented out - using NhapLieuController version
 Route::get('/thanh-toan', [ThanhToanController::class, 'thanhToan'])->name('thanh-toan');
 
 Route::post('/thanh-toan-thanh-cong', [ThanhToanController::class, 'thanhToanThanhCong'])->name('thanh-toan-thanh-cong');
